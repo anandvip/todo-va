@@ -7,25 +7,23 @@
     <style>
         :root {
             --background-color: #f0f0f0;
-            --text-color: #333;
-            --header-footer-bg: #007BFF;
-            --header-footer-text: #fff;
-            --button-bg: #007BFF;
-            --button-hover-bg: #0056b3;
-            --button-text: #fff;
-            --delete-button-bg: #dc3545;
-            --delete-button-hover-bg: #c82333;
-            --container-bg: #fff;
+            --text-color: #333333;
+            --header-footer-bg: #3498db;
+            --header-footer-text: #ffffff;
+            --button-bg: #3498db;
+            --button-hover-bg: #2980b9;
+            --button-text: #ffffff;
+            --delete-button-bg: #e74c3c;
+            --delete-button-hover-bg: #c0392b;
+            --container-bg: #ffffff;
             --container-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            --input-border: #ccc;
-            --editable-border: #ccc;
-            --toast-bg: #333;
-            --toast-text: #fff;
-            --debug-console-bg: #333;
-            --debug-console-text: #fff;
-            --list-item-bg: #f9f9f9;
-            --list-item-text: #333;
-            --drag-handle-color: #555;
+            --input-border: #bdc3c7;
+            --editable-border: #bdc3c7;
+            --toast-bg: #34495e;
+            --toast-text: #ffffff;
+            --list-item-bg: #ecf0f1;
+            --list-item-text: #333333;
+            --drag-handle-color: #7f8c8d;
         }
 
         body {
@@ -36,6 +34,7 @@
             flex-direction: column;
             min-height: 100vh;
             margin: 0;
+            transition: all 0.3s ease;
         }
 
         header, footer {
@@ -202,10 +201,10 @@
             <ul id="taskList"></ul>
             <div class="theme-selector">
                 <div class="theme-btn" style="background-color: #f0f0f0;" onclick="setTheme('light')"></div>
-                <div class="theme-btn" style="background-color: #333;" onclick="setTheme('dark')"></div>
-                <div class="theme-btn" style="background-color: #e0f7fa;" onclick="setTheme('blue')"></div>
-                <div class="theme-btn" style="background-color: #e8f5e9;" onclick="setTheme('green')"></div>
-                <div class="theme-btn" style="background-color: #f3e5f5;" onclick="setTheme('purple')"></div>
+                <div class="theme-btn" style="background-color: #34495e;" onclick="setTheme('dark')"></div>
+                <div class="theme-btn" style="background-color: #3498db;" onclick="setTheme('blue')"></div>
+                <div class="theme-btn" style="background-color: #2ecc71;" onclick="setTheme('green')"></div>
+                <div class="theme-btn" style="background-color: #9b59b6;" onclick="setTheme('purple')"></div>
             </div>
         </div>
     </main>
@@ -387,50 +386,57 @@
             switch (theme) {
                 case 'light':
                     root.style.setProperty('--background-color', '#f0f0f0');
-                    root.style.setProperty('--text-color', '#333');
-                    root.style.setProperty('--header-footer-bg', '#007BFF');
-                    root.style.setProperty('--button-bg', '#007BFF');
-                    root.style.setProperty('--button-hover-bg', '#0056b3');
-                    root.style.setProperty('--container-bg', '#fff');
-                    root.style.setProperty('--list-item-bg', '#f9f9f9');
+                    root.style.setProperty('--text-color', '#333333');
+                    root.style.setProperty('--header-footer-bg', '#3498db');
+                    root.style.setProperty('--button-bg', '#3498db');
+                    root.style.setProperty('--button-hover-bg', '#2980b9');
+                    root.style.setProperty('--container-bg', '#ffffff');
+                    root.style.setProperty('--list-item-bg', '#ecf0f1');
                     break;
                 case 'dark':
-                    root.style.setProperty('--background-color', '#333');
-                    root.style.setProperty('--text-color', '#fff');
-                    root.style.setProperty('--header-footer-bg', '#1a1a1a');
-                    root.style.setProperty('--button-bg', '#555');
-                    root.style.setProperty('--button-hover-bg', '#777');
-                    root.style.setProperty('--container-bg', '#444');
-                    root.style.setProperty('--list-item-bg', '#555');
+                    root.style.setProperty('--background-color', '#34495e');
+                    root.style.setProperty('--text-color', '#ecf0f1');
+                    root.style.setProperty('--header-footer-bg', '#2c3e50');
+                    root.style.setProperty('--button-bg', '#3498db');
+                    root.style.setProperty('--button-hover-bg', '#2980b9');
+                    root.style.setProperty('--container-bg', '#2c3e50');
+                    root.style.setProperty('--list-item-bg', '#34495e');
                     break;
-               case 'blue':
-                    root.style.setProperty('--background-color', '#e0f7fa');
-                    root.style.setProperty('--text-color', '#01579b');
-                    root.style.setProperty('--header-footer-bg', '#0288d1');
-                    root.style.setProperty('--button-bg', '#0288d1');
-                    root.style.setProperty('--button-hover-bg', '#039be5');
-                    root.style.setProperty('--container-bg', '#fff');
-                    root.style.setProperty('--list-item-bg', '#e1f5fe');
+                case 'blue':
+                    root.style.setProperty('--background-color', '#3498db');
+                    root.style.setProperty('--text-color', '#ecf0f1');
+                    root.style.setProperty('--header-footer-bg', '#2980b9');
+                    root.style.setProperty('--button-bg', '#2980b9');
+                    root.style.setProperty('--button-hover-bg', '#1f6da8');
+                    root.style.setProperty('--container-bg', '#ecf0f1');
+                    root.style.setProperty('--list-item-bg', '#bdc3c7');
                     break;
                 case 'green':
-                    root.style.setProperty('--background-color', '#e8f5e9');
-                    root.style.setProperty('--text-color', '#1b5e20');
-                    root.style.setProperty('--header-footer-bg', '#4caf50');
-                    root.style.setProperty('--button-bg', '#4caf50');
-                    root.style.setProperty('--button-hover-bg', '#66bb6a');
-                    root.style.setProperty('--container-bg', '#fff');
-                    root.style.setProperty('--list-item-bg', '#f1f8e9');
+                    root.style.setProperty('--background-color', '#2ecc71');
+                    root.style.setProperty('--text-color', '#ecf0f1');
+                    root.style.setProperty('--header-footer-bg', '#27ae60');
+                    root.style.setProperty('--button-bg', '#27ae60');
+                    root.style.setProperty('--button-hover-bg', '#219a52');
+                    root.style.setProperty('--container-bg', '#ecf0f1');
+                    root.style.setProperty('--list-item-bg', '#bdc3c7');
                     break;
                 case 'purple':
-                    root.style.setProperty('--background-color', '#f3e5f5');
-                    root.style.setProperty('--text-color', '#4a148c');
-                    root.style.setProperty('--header-footer-bg', '#9c27b0');
-                    root.style.setProperty('--button-bg', '#9c27b0');
-                    root.style.setProperty('--button-hover-bg', '#ab47bc');
-                    root.style.setProperty('--container-bg', '#fff');
-                    root.style.setProperty('--list-item-bg', '#f3e5f5');
+                    root.style.setProperty('--background-color', '#9b59b6');
+                    root.style.setProperty('--text-color', '#ecf0f1');
+                    root.style.setProperty('--header-footer-bg', '#8e44ad');
+                    root.style.setProperty('--button-bg', '#8e44ad');
+                    root.style.setProperty('--button-hover-bg', '#7d3c98');
+                    root.style.setProperty('--container-bg', '#ecf0f1');
+                    root.style.setProperty('--list-item-bg', '#bdc3c7');
                     break;
             }
+            // Update other elements that might need color changes
+            root.style.setProperty('--delete-button-bg', '#e74c3c');
+            root.style.setProperty('--delete-button-hover-bg', '#c0392b');
+            root.style.setProperty('--input-border', '#bdc3c7');
+            root.style.setProperty('--editable-border', '#bdc3c7');
+            root.style.setProperty('--toast-bg', '#34495e');
+            root.style.setProperty('--drag-handle-color', '#7f8c8d');
         }
 
         document.addEventListener('DOMContentLoaded', () => {
