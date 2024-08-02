@@ -381,6 +381,11 @@
             }
         }
 
+        document.addEventListener('DOMContentLoaded', () => {
+            new TodoApp();
+        });
+    </script>
+    <script>
         function setTheme(theme) {
             const root = document.documentElement;
             switch (theme) {
@@ -393,7 +398,7 @@
                     root.style.setProperty('--container-bg', '#ffffff');
                     root.style.setProperty('--list-item-bg', '#ecf0f1');
                     break;
-                case 'dark':
+               case 'dark':
                     root.style.setProperty('--background-color', '#34495e');
                     root.style.setProperty('--text-color', '#ecf0f1');
                     root.style.setProperty('--header-footer-bg', '#2c3e50');
@@ -401,6 +406,7 @@
                     root.style.setProperty('--button-hover-bg', '#2980b9');
                     root.style.setProperty('--container-bg', '#2c3e50');
                     root.style.setProperty('--list-item-bg', '#34495e');
+                    root.style.setProperty('--list-item-text', '#ecf0f1');
                     break;
                 case 'blue':
                     root.style.setProperty('--background-color', '#3498db');
@@ -410,6 +416,7 @@
                     root.style.setProperty('--button-hover-bg', '#1f6da8');
                     root.style.setProperty('--container-bg', '#ecf0f1');
                     root.style.setProperty('--list-item-bg', '#bdc3c7');
+                    root.style.setProperty('--list-item-text', '#333333');
                     break;
                 case 'green':
                     root.style.setProperty('--background-color', '#2ecc71');
@@ -419,6 +426,7 @@
                     root.style.setProperty('--button-hover-bg', '#219a52');
                     root.style.setProperty('--container-bg', '#ecf0f1');
                     root.style.setProperty('--list-item-bg', '#bdc3c7');
+                    root.style.setProperty('--list-item-text', '#333333');
                     break;
                 case 'purple':
                     root.style.setProperty('--background-color', '#9b59b6');
@@ -428,6 +436,7 @@
                     root.style.setProperty('--button-hover-bg', '#7d3c98');
                     root.style.setProperty('--container-bg', '#ecf0f1');
                     root.style.setProperty('--list-item-bg', '#bdc3c7');
+                    root.style.setProperty('--list-item-text', '#333333');
                     break;
             }
             // Update other elements that might need color changes
@@ -436,12 +445,11 @@
             root.style.setProperty('--input-border', '#bdc3c7');
             root.style.setProperty('--editable-border', '#bdc3c7');
             root.style.setProperty('--toast-bg', '#34495e');
+            root.style.setProperty('--toast-text', '#ffffff');
             root.style.setProperty('--drag-handle-color', '#7f8c8d');
+            root.style.setProperty('--header-footer-text', '#ffffff');
+            root.style.setProperty('--button-text', '#ffffff');
         }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            new TodoApp();
-        });
     </script>
 </body>
 </html>
