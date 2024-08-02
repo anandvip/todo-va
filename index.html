@@ -181,7 +181,12 @@
             padding: 1rem;
         }
 
-        /* New styles for phone authentication */
+        #authContainer {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 1rem;
+        }
+
         #phoneAuthContainer {
             display: none;
             margin-top: 1rem;
@@ -193,11 +198,6 @@
             margin-bottom: 0.5rem;
             border: 1px solid var(--input-border);
             border-radius: 4px;
-        }
-
-        #sendCodeBtn, #verifyCodeBtn {
-            width: 100%;
-            margin-bottom: 0.5rem;
         }
     </style>
 </head>
@@ -214,7 +214,7 @@
     <main>
         <div class="container">
             <div id="phoneAuthContainer">
-                <input type="tel" id="phoneNumber" placeholder="Enter phone number">
+                <input type="tel" id="phoneNumber" placeholder="Enter phone number (+1234567890)">
                 <button id="sendCodeBtn">Send Code</button>
                 <input type="text" id="verificationCode" placeholder="Enter verification code" style="display:none;">
                 <button id="verifyCodeBtn" style="display:none;">Verify Code</button>
@@ -341,7 +341,7 @@
                 const provider = new GoogleAuthProvider();
                 try {
                     await signInWithPopup(auth, provider);
-                    this.showToast('Logged in successfully');
+                    this.showToast('Logged in successfully with Google');
                 } catch (error) {
                     this.showToast('Error logging in: ' + error.message);
                 }
@@ -349,17 +349,20 @@
 
             showPhoneAuth() {
                 this.phoneAuthContainer.style.display = 'block';
-                this.recaptchaVerifier = new RecaptchaVerifier(auth, 'sendCodeBtn', {
-                    'size': 'invisible',
-                    'callback': (response) => {
-                        // reCAPTCHA solved, allow signInWithPhoneNumber.
-                        this.sendVerificationCode();
-                    }
-                });
+                if (!this.recaptchaVerifier) {
+                    this.recaptchaVerifier = new RecaptchaVerifier(auth, 'sendCodeBtn', {
+                        'size': 'invisible'
+                    });
+                }
             }
 
             async sendVerificationCode() {
-                const phoneNumber = this.phoneNumber.value;
+                const phoneNumber = this.phoneNumber.value.trim();
+                if (!phoneNumber.startsWith('+')) {
+                    this.showToast('Please enter the phone number with country code (e.g., +1234567890)');
+                    return;
+                }
+
                 try {
                     this.confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, this.recaptchaVerifier);
                     this.verificationCode.style.display = 'block';
@@ -371,10 +374,16 @@
             }
 
             async verifyCode() {
-                const code = this.verificationCode.value;
+                const code = this.verificationCode.value.trim();
+                if (!this.confirmationResult) {
+                    this.showToast('Please send verification code first');
+                    return;
+                }
+
                 try {
                     await this.confirmationResult.confirm(code);
                     this.showToast('Phone authentication successful');
+                    this.phoneAuthContainer.style.display = 'none';
                 } catch (error) {
                     this.showToast('Error verifying code: ' + error.message);
                 }
