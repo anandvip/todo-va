@@ -37,11 +37,25 @@
             transition: all 0.3s ease;
         }
 
-        header, footer {
+        header {
             background-color: var(--header-footer-bg);
             color: var(--header-footer-text);
             padding: 1rem;
-            text-align: center;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        #userInfo {
+            display: none;
+            align-items: center;
+        }
+
+        #userInfo img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 10px;
         }
 
         main {
@@ -59,23 +73,6 @@
             box-shadow: var(--container-shadow);
             width: 100%;
             max-width: 500px;
-        }
-
-        h1 {
-            margin-top: 0;
-        }
-
-        #userInfo {
-            display: none;
-            text-align: center;
-            margin-bottom: 1rem;
-        }
-
-        #userInfo img {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            margin-right: 10px;
         }
 
         #taskForm {
@@ -177,34 +174,36 @@
             cursor: pointer;
         }
 
-        #authContainer {
+        footer {
+            background-color: var(--header-footer-bg);
+            color: var(--header-footer-text);
             text-align: center;
-            margin-bottom: 1rem;
+            padding: 1rem;
         }
     </style>
 </head>
 <body>
     <header>
         <h1>To-Do List</h1>
+        <div id="userInfo"></div>
+        <div id="authContainer">
+            <button id="loginBtn">Login</button>
+            <button id="logoutBtn" style="display: none;">Logout</button>
+        </div>
     </header>
     <main>
         <div class="container">
-            <div id="authContainer">
-                <button id="loginBtn">Login</button>
-                <button id="logoutBtn" style="display: none;">Logout</button>
-            </div>
-            <div id="userInfo"></div>
             <form id="taskForm" style="display: none;">
                 <input type="text" id="taskInput" placeholder="Add a new task" required>
                 <button type="submit" id="addTaskBtn">Add Task</button>
             </form>
             <ul id="taskList"></ul>
             <div class="theme-selector">
-                <div class="theme-btn" style="background-color: #f0f0f0;" onclick="setTheme('light')"></div>
-                <div class="theme-btn" style="background-color: #34495e;" onclick="setTheme('dark')"></div>
-                <div class="theme-btn" style="background-color: #3498db;" onclick="setTheme('blue')"></div>
-                <div class="theme-btn" style="background-color: #2ecc71;" onclick="setTheme('green')"></div>
-                <div class="theme-btn" style="background-color: #9b59b6;" onclick="setTheme('purple')"></div>
+                <div class="theme-btn" style="background-color: #f0f0f0;" data-theme="light"></div>
+                <div class="theme-btn" style="background-color: #34495e;" data-theme="dark"></div>
+                <div class="theme-btn" style="background-color: #3498db;" data-theme="blue"></div>
+                <div class="theme-btn" style="background-color: #2ecc71;" data-theme="green"></div>
+                <div class="theme-btn" style="background-color: #9b59b6;" data-theme="purple"></div>
             </div>
         </div>
     </main>
@@ -245,6 +244,7 @@
                 this.initEventListeners();
                 this.initSortable();
                 this.initAuth();
+                this.initThemes();
             }
 
             initEventListeners() {
@@ -288,10 +288,12 @@
             displayUserInfo(user) {
                 this.userInfo.innerHTML = `
                     <img src="${user.photoURL}" alt="${user.displayName}'s profile picture">
-                    <p>Welcome, ${user.displayName}</p>
-                    <p>Email: ${user.email}</p>
+                    <div>
+                        <p>${user.displayName}</p>
+                        <p>${user.email}</p>
+                    </div>
                 `;
-                this.userInfo.style.display = 'block';
+                this.userInfo.style.display = 'flex';
             }
 
             async login() {
@@ -391,94 +393,88 @@
                     this.toast.style.opacity = 0;
                 }, 3000);
             }
+
+            initThemes() {
+                document.querySelectorAll('.theme-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const theme = e.target.getAttribute('data-theme');
+                        this.setTheme(theme);
+                    });
+                });
+                this.setTheme('light'); // Set default theme
+            }
+
+            setTheme(theme) {
+                const root = document.documentElement;
+                switch (theme) {
+                    case 'light':
+                        root.style.setProperty('--background-color', '#f0f0f0');
+                        root.style.setProperty('--text-color', '#333333');
+                        root.style.setProperty('--header-footer-bg', '#3498db');
+                        root.style.setProperty('--button-bg', '#3498db');
+                        root.style.setProperty('--button-hover-bg', '#2980b9');
+                        root.style.setProperty('--container-bg', '#ffffff');
+                        root.style.setProperty('--container-bg', '#ffffff');
+                        root.style.setProperty('--list-item-bg', '#ecf0f1');
+                        break;
+                    case 'dark':
+                        root.style.setProperty('--background-color', '#34495e');
+                        root.style.setProperty('--text-color', '#ecf0f1');
+                        root.style.setProperty('--header-footer-bg', '#2c3e50');
+                        root.style.setProperty('--button-bg', '#3498db');
+                        root.style.setProperty('--button-hover-bg', '#2980b9');
+                        root.style.setProperty('--container-bg', '#2c3e50');
+                        root.style.setProperty('--list-item-bg', '#445566');
+                        root.style.setProperty('--list-item-text', '#ecf0f1');
+                        break;
+                    case 'blue':
+                        root.style.setProperty('--background-color', '#3498db');
+                        root.style.setProperty('--text-color', '#ecf0f1');
+                        root.style.setProperty('--header-footer-bg', '#2980b9');
+                        root.style.setProperty('--button-bg', '#2980b9');
+                        root.style.setProperty('--button-hover-bg', '#1f6da8');
+                        root.style.setProperty('--container-bg', '#ecf0f1');
+                        root.style.setProperty('--list-item-bg', '#bdc3c7');
+                        root.style.setProperty('--list-item-text', '#333333');
+                        break;
+                    case 'green':
+                        root.style.setProperty('--background-color', '#2ecc71');
+                        root.style.setProperty('--text-color', '#ecf0f1');
+                        root.style.setProperty('--header-footer-bg', '#27ae60');
+                        root.style.setProperty('--button-bg', '#27ae60');
+                        root.style.setProperty('--button-hover-bg', '#219a52');
+                        root.style.setProperty('--container-bg', '#ecf0f1');
+                        root.style.setProperty('--list-item-bg', '#bdc3c7');
+                        root.style.setProperty('--list-item-text', '#333333');
+                        break;
+                    case 'purple':
+                        root.style.setProperty('--background-color', '#9b59b6');
+                        root.style.setProperty('--text-color', '#ecf0f1');
+                        root.style.setProperty('--header-footer-bg', '#8e44ad');
+                        root.style.setProperty('--button-bg', '#8e44ad');
+                        root.style.setProperty('--button-hover-bg', '#7d3c98');
+                        root.style.setProperty('--container-bg', '#ecf0f1');
+                        root.style.setProperty('--list-item-bg', '#bdc3c7');
+                        root.style.setProperty('--list-item-text', '#333333');
+                        break;
+                }
+                // Update other elements that might need color changes
+                root.style.setProperty('--delete-button-bg', '#e74c3c');
+                root.style.setProperty('--delete-button-hover-bg', '#c0392b');
+                root.style.setProperty('--input-border', '#bdc3c7');
+                root.style.setProperty('--editable-border', '#bdc3c7');
+                root.style.setProperty('--toast-bg', '#34495e');
+                root.style.setProperty('--toast-text', '#ffffff');
+                root.style.setProperty('--drag-handle-color', '#7f8c8d');
+                root.style.setProperty('--header-footer-text', '#ffffff');
+                root.style.setProperty('--button-text', '#ffffff');
+            }
         }
 
+        // Initialize the app when the DOM is fully loaded
         document.addEventListener('DOMContentLoaded', () => {
             new TodoApp();
         });
-    </script>
-    <script>
-        function setTheme(theme) {
-            const root = document.documentElement;
-            switch (theme) {
-                case 'light':
-                    root.style.setProperty('--background-color', '#f0f0f0');
-                    root.style.setProperty('--text-color', '#333333');
-                    root.style.setProperty('--header-footer-bg', '#3498db');
-                    root.style.setProperty('--button-bg', '#3498db');
-                    root.style.setProperty('--button-hover-bg', '#2980b9');
-                    root.style.setProperty('--container-bg', '#ffffff');
-                    root.style.setProperty('--list-item-bg', '#ecf0f1');
-                    break;
-               case 'dark':
-                    root.style.setProperty('--background-color', '#34495e');
-                    root.style.setProperty('--text-color', '#ecf0f1');
-                    root.style.setProperty('--header-footer-bg', '#2c3e50');
-                    root.style.setProperty('--button-bg', '#3498db');
-                    root.style.setProperty('--button-hover-bg', '#2980b9');
-                    root.style.setProperty('--container-bg', '#2c3e50');
-                    root.style.setProperty('--list-item-bg', '#445566');
-                    root.style.setProperty('--list-item-text', '#ecf0f1');
-                    root.style.setProperty('--input-border', '#7f8c8d');
-                    root.style.setProperty('--editable-border', '#95a5a6');
-                    break;
-                case 'blue':
-                    root.style.setProperty('--background-color', '#3498db');
-                    root.style.setProperty('--text-color', '#ecf0f1');
-                    root.style.setProperty('--header-footer-bg', '#2980b9');
-                    root.style.setProperty('--button-bg', '#2980b9');
-                    root.style.setProperty('--button-hover-bg', '#1f6da8');
-                    root.style.setProperty('--container-bg', '#ecf0f1');
-                    root.style.setProperty('--list-item-bg', '#bdc3c7');
-                    root.style.setProperty('--list-item-text', '#333333');
-                    root.style.setProperty('--input-border', '#2980b9');
-                    root.style.setProperty('--editable-border', '#3498db');
-                    break;
-                case 'green':
-                    root.style.setProperty('--background-color', '#2ecc71');
-                    root.style.setProperty('--text-color', '#ecf0f1');
-                    root.style.setProperty('--header-footer-bg', '#27ae60');
-                    root.style.setProperty('--button-bg', '#27ae60');
-                    root.style.setProperty('--button-hover-bg', '#219a52');
-                    root.style.setProperty('--container-bg', '#ecf0f1');
-                    root.style.setProperty('--list-item-bg', '#bdc3c7');
-                    root.style.setProperty('--list-item-text', '#333333');
-                    root.style.setProperty('--input-border', '#27ae60');
-                    root.style.setProperty('--editable-border', '#2ecc71');
-                    break;
-                case 'purple':
-                    root.style.setProperty('--background-color', '#9b59b6');
-                    root.style.setProperty('--text-color', '#ecf0f1');
-                    root.style.setProperty('--header-footer-bg', '#8e44ad');
-                    root.style.setProperty('--button-bg', '#8e44ad');
-                    root.style.setProperty('--button-hover-bg', '#7d3c98');
-                    root.style.setProperty('--container-bg', '#ecf0f1');
-                    root.style.setProperty('--list-item-bg', '#bdc3c7');
-                    root.style.setProperty('--list-item-text', '#333333');
-                    root.style.setProperty('--input-border', '#8e44ad');
-                    root.style.setProperty('--editable-border', '#9b59b6');
-                    break;
-            }
-            // Update other elements that might need color changes
-            root.style.setProperty('--delete-button-bg', '#e74c3c');
-            root.style.setProperty('--delete-button-hover-bg', '#c0392b');
-            root.style.setProperty('--toast-bg', '#34495e');
-            root.style.setProperty('--toast-text', '#ffffff');
-            root.style.setProperty('--drag-handle-color', '#7f8c8d');
-            root.style.setProperty('--header-footer-text', '#ffffff');
-            root.style.setProperty('--button-text', '#ffffff');
-        }
-
-        // Add event listeners to theme buttons
-        document.querySelectorAll('.theme-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const theme = e.target.getAttribute('data-theme');
-                setTheme(theme);
-            });
-        });
-
-        // Set default theme
-        setTheme('light');
     </script>
 </body>
 </html>
