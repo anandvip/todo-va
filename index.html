@@ -216,7 +216,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
         import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
-        import { getFirestore, collection, addDoc, getDocs, updateDoc, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, getDocs, updateDoc, deleteDoc, doc, query, where } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyD6AcC8ye33-y-Hk67He9-WHdIETssMPRY",
@@ -336,12 +336,11 @@
             async loadTasks() {
                 this.taskList.innerHTML = '';
                 try {
-                    const querySnapshot = await getDocs(collection(db, 'tasks'));
+                    const q = query(collection(db, 'tasks'), where('userId', '==', auth.currentUser.uid));
+                    const querySnapshot = await getDocs(q);
                     querySnapshot.forEach((doc) => {
                         const task = doc.data();
-                        if (task.userId === auth.currentUser.uid) {
-                            this.addTaskToDOM(doc.id, task.task);
-                        }
+                        this.addTaskToDOM(doc.id, task.task);
                     });
                 } catch (error) {
                     this.showToast('Error loading tasks: ' + error.message);
