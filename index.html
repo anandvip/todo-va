@@ -65,6 +65,19 @@
             margin-top: 0;
         }
 
+        #userInfo {
+            display: none;
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+
+        #userInfo img {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+
         #taskForm {
             display: flex;
             margin-bottom: 1rem;
@@ -77,17 +90,21 @@
             border-radius: 4px 0 0 4px;
         }
 
-        #addTaskBtn {
+        button {
             padding: 0.5rem 1rem;
             background-color: var(--button-bg);
             color: var(--button-text);
             border: none;
-            border-radius: 0 4px 4px 0;
+            border-radius: 4px;
             cursor: pointer;
         }
 
-        #addTaskBtn:hover {
+        button:hover {
             background-color: var(--button-hover-bg);
+        }
+
+        #addTaskBtn {
+            border-radius: 0 4px 4px 0;
         }
 
         #taskList {
@@ -125,18 +142,14 @@
 
         .delete-btn {
             background-color: var(--delete-button-bg);
-            color: var(--button-text);
-            border: none;
-            border-radius: 4px;
-            padding: 0.25rem 0.5rem;
-            cursor: pointer;
+            margin-left: 0.5rem;
         }
 
         .delete-btn:hover {
             background-color: var(--delete-button-hover-bg);
         }
 
-        .toast {
+        #toast {
             position: fixed;
             bottom: 1rem;
             left: 50%;
@@ -168,20 +181,6 @@
             text-align: center;
             margin-bottom: 1rem;
         }
-
-        #authContainer button {
-            padding: 0.5rem 1rem;
-            background-color: var(--button-bg);
-            color: var(--button-text);
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            margin: 0 0.5rem;
-        }
-
-        #authContainer button:hover {
-            background-color: var(--button-hover-bg);
-        }
     </style>
 </head>
 <body>
@@ -194,6 +193,7 @@
                 <button id="loginBtn">Login</button>
                 <button id="logoutBtn" style="display: none;">Logout</button>
             </div>
+            <div id="userInfo"></div>
             <form id="taskForm" style="display: none;">
                 <input type="text" id="taskInput" placeholder="Add a new task" required>
                 <button type="submit" id="addTaskBtn">Add Task</button>
@@ -211,7 +211,7 @@
     <footer>
         <p>&copy; 2024 To-Do List App</p>
     </footer>
-    <div id="toast" class="toast"></div>
+    <div id="toast"></div>
 
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <script type="module">
@@ -240,6 +240,7 @@
                 this.toast = document.getElementById('toast');
                 this.loginBtn = document.getElementById('loginBtn');
                 this.logoutBtn = document.getElementById('logoutBtn');
+                this.userInfo = document.getElementById('userInfo');
 
                 this.initEventListeners();
                 this.initSortable();
@@ -272,14 +273,25 @@
                         this.loginBtn.style.display = 'none';
                         this.logoutBtn.style.display = 'inline-block';
                         this.taskForm.style.display = 'flex';
+                        this.displayUserInfo(user);
                         this.loadTasks();
                     } else {
                         this.loginBtn.style.display = 'inline-block';
                         this.logoutBtn.style.display = 'none';
                         this.taskForm.style.display = 'none';
+                        this.userInfo.style.display = 'none';
                         this.taskList.innerHTML = '';
                     }
                 });
+            }
+
+            displayUserInfo(user) {
+                this.userInfo.innerHTML = `
+                    <img src="${user.photoURL}" alt="${user.displayName}'s profile picture">
+                    <p>Welcome, ${user.displayName}</p>
+                    <p>Email: ${user.email}</p>
+                `;
+                this.userInfo.style.display = 'block';
             }
 
             async login() {
@@ -405,8 +417,10 @@
                     root.style.setProperty('--button-bg', '#3498db');
                     root.style.setProperty('--button-hover-bg', '#2980b9');
                     root.style.setProperty('--container-bg', '#2c3e50');
-                    root.style.setProperty('--list-item-bg', '#34495e');
+                    root.style.setProperty('--list-item-bg', '#445566');
                     root.style.setProperty('--list-item-text', '#ecf0f1');
+                    root.style.setProperty('--input-border', '#7f8c8d');
+                    root.style.setProperty('--editable-border', '#95a5a6');
                     break;
                 case 'blue':
                     root.style.setProperty('--background-color', '#3498db');
@@ -417,6 +431,8 @@
                     root.style.setProperty('--container-bg', '#ecf0f1');
                     root.style.setProperty('--list-item-bg', '#bdc3c7');
                     root.style.setProperty('--list-item-text', '#333333');
+                    root.style.setProperty('--input-border', '#2980b9');
+                    root.style.setProperty('--editable-border', '#3498db');
                     break;
                 case 'green':
                     root.style.setProperty('--background-color', '#2ecc71');
@@ -427,6 +443,8 @@
                     root.style.setProperty('--container-bg', '#ecf0f1');
                     root.style.setProperty('--list-item-bg', '#bdc3c7');
                     root.style.setProperty('--list-item-text', '#333333');
+                    root.style.setProperty('--input-border', '#27ae60');
+                    root.style.setProperty('--editable-border', '#2ecc71');
                     break;
                 case 'purple':
                     root.style.setProperty('--background-color', '#9b59b6');
@@ -437,19 +455,30 @@
                     root.style.setProperty('--container-bg', '#ecf0f1');
                     root.style.setProperty('--list-item-bg', '#bdc3c7');
                     root.style.setProperty('--list-item-text', '#333333');
+                    root.style.setProperty('--input-border', '#8e44ad');
+                    root.style.setProperty('--editable-border', '#9b59b6');
                     break;
             }
             // Update other elements that might need color changes
             root.style.setProperty('--delete-button-bg', '#e74c3c');
             root.style.setProperty('--delete-button-hover-bg', '#c0392b');
-            root.style.setProperty('--input-border', '#bdc3c7');
-            root.style.setProperty('--editable-border', '#bdc3c7');
             root.style.setProperty('--toast-bg', '#34495e');
             root.style.setProperty('--toast-text', '#ffffff');
             root.style.setProperty('--drag-handle-color', '#7f8c8d');
             root.style.setProperty('--header-footer-text', '#ffffff');
             root.style.setProperty('--button-text', '#ffffff');
         }
+
+        // Add event listeners to theme buttons
+        document.querySelectorAll('.theme-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const theme = e.target.getAttribute('data-theme');
+                setTheme(theme);
+            });
+        });
+
+        // Set default theme
+        setTheme('light');
     </script>
 </body>
 </html>
