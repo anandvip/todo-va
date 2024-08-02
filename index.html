@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>To-Do List</title>
+    <style>
+        :root {
+            --background-color: #f0f0f0;
+            --text-color: #333;
+            --header-footer-bg: #007BFF;
+            --header-footer-text: #fff;
+            --button-bg: #007BFF;
+            --button-hover-bg: #0056b3;
+            --button-text: #fff;
+            --delete-button-bg: #dc3545;
+            --delete-button-hover-bg: #c82333;
+            --container-bg: #fff;
+            --container-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            --input-border: #ccc;
+            --editable-border: #ccc;
+            --toast-bg: #333;
+            --toast-text: #fff;
+            --debug-console-bg: #333;
+            --debug-console-text: #fff;
+            --list-item-bg: #f9f9f9;
+            --list-item-text: #333;
+            --drag-handle-color: #555;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: var(--background-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            color: var(--text-color);
+        }
+
+        header, footer {
+            background-color: var(--header-footer-bg);
+            color: var(--header-footer-text);
+            padding: 10px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .container {
+            background-color: var(--container-bg);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: var(--container-shadow);
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+            flex-grow: 1;
+            margin: 20px 0;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+        }
+
+        input {
+            width: 80%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid var(--input-border);
+            border-radius: 4px;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            background-color: var(--button-bg);
+            color: var(--button-text);
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: var(--button-hover-bg);
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        li {
+            background-color: var(--list-item-bg);
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: move; /* Change cursor to indicate draggable */
+            touch-action: none; /* Disable default touch actions */
+            position: relative;
+            color: var(--list-item-text);
+        }
+
+        li .drag-handle {
+            cursor: move;
+            margin-right: 10px;
+            font-size: 1.2em;
+            color: var(--drag-handle-color);
+        }
+
+        li button {
+            background-color: var(--delete-button-bg);
+            border: none;
+            color: #fff;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        li button:hover {
+            background-color: var(--delete-button-hover-bg);
+        }
+
+        .sortable-ghost {
+            opacity: 0.5;
+            background-color: #ccc;
+        }
+
+        .editable {
+            outline: none;
+            border: 1px solid var(--editable-border);
+            border-radius: 4px;
+            padding: 5px;
+            margin-right: 10px;
+            flex-grow: 1;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: var(--toast-bg);
+            color: var(--toast-text);
+            padding: 10px 20px;
+            border-radius: 4px;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.5s;
+        }
+
+        .toast.show {
+            opacity: 1;
+        }
+
+        .debug-console {
+            background-color: var(--debug-console-bg);
+            color: var(--debug-console-text);
+            padding: 10px;
+            width: 100%;
+            text-align: left;
+            overflow-y: auto;
+            max-height: 150px;
+        }
+
+        .theme-selector {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .theme-selector div {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            margin: 0 5px;
+            cursor: pointer;
+        }
+
+        .theme-selector div:hover {
+            transform: scale(1.2);
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>To-Do List</h1>
+    </header>
+    <div class="container">
+        <input type="text" id="taskInput" placeholder="Add a new task">
+        <button onclick="addTask()">Add Task</button>
+        <ul id="taskList"></ul>
+        <div class="theme-selector">
+            <div style="background-color: #fff;" onclick="setTheme('light')"></div>
+            <div style="background-color: #333;" onclick="setTheme('dark')"></div>
+            <div style="background-color: #007BFF;" onclick="setTheme('blue')"></div>
+            <div style="background-color: #4CAF50;" onclick="setTheme('green')"></div>
+            <div style="background-color: #9C27B0;" onclick="setTheme('purple')"></div>
+        </div>
+    </div>
+    <footer>
+        <p>&copy; 2023 To-Do List App</p>
+    </footer>
+    <div class="toast" id="toast"></div>
+    <div class="debug-console" id="debugConsole"></div>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.14.0/Sortable.min.js"></script>
+    <script>
+        const dbName = 'ToDoListDB';
+        const storeName = 'tasks';
+        let db;
+
+        // Open IndexedDB
+        const request = indexedDB.open(dbName, 1);
+
+        request.onerror = function(event) {
+            console.error('Database error:', event.target.errorCode);
+            showToast('Database error: ' + event.target.errorCode);
+        };
+
+        request.onsuccess = function(event) {
+            db = event.target.result;
+            loadTasks();
+        };
+
+        request.onupgradeneeded = function(event) {
+            db = event.target.result;
+            const objectStore = db.createObjectStore(storeName, { keyPath: 'id', autoIncrement: true });
+            objectStore.createIndex('task', 'task', { unique: false });
+        };
+
+        function addTask() {
+            const taskInput = document.getElementById('taskInput');
+            const taskList = document.getElementById('taskList');
+
+            if (taskInput.value.trim() === '') {
+                showToast('Please enter a task');
+                return;
+            }
+
+            const task = { task: taskInput.value.trim() };
+
+            const transaction = db.transaction([storeName], 'readwrite');
+            const objectStore = transaction.objectStore(storeName);
+            const request = objectStore.add(task);
+
+            request.onsuccess = function() {
+                const li = document.createElement('li');
+                li.setAttribute('data-id', request.result.id); // Store the key as a data attribute
+                li.innerHTML = `<span class="drag-handle">☰</span> <span class="editable" contenteditable="true">${task.task}</span>`;
+
+                const deleteButton = document.createElement('button');
+                deleteButton.textContent = 'Delete';
+                deleteButton.onclick = function() {
+                    deleteTask(request.result.id, li);
+                };
+
+                li.appendChild(deleteButton);
+                taskList.appendChild(li);
+
+                // Save changes on blur event
+                const editableSpan = li.querySelector('.editable');
+                editableSpan.addEventListener('blur', function() {
+                    updateTask(request.result.id, editableSpan.textContent);
+                });
+
+                taskInput.value = '';
+                showToast('Task added successfully');
+            };
+
+            request.onerror = function(event) {
+                showToast('Error adding task: ' + event.target.errorCode);
+            };
+        }
+
+        function loadTasks() {
+            const taskList = document.getElementById('taskList');
+            taskList.innerHTML = '';
+
+            const transaction = db.transaction([storeName], 'readonly');
+            const objectStore = transaction.objectStore(storeName);
+            const request = objectStore.openCursor();
+
+            request.onsuccess = function(event) {
+                const cursor = event.target.result;
+                if (cursor) {
+                    const li = document.createElement('li');
+                    li.setAttribute('data-id', cursor.value.id); // Store the key as a data attribute
+                    li.innerHTML = `<span class="drag-handle">☰</span> <span class="editable" contenteditable="true">${cursor.value.task}</span>`;
+
+                    const deleteButton = document.createElement('button');
+                    deleteButton.textContent = 'Delete';
+                    deleteButton.onclick = function() {
+                        deleteTask(cursor.value.id, li);
+                    };
+
+                    li.appendChild(deleteButton);
+                    taskList.appendChild(li);
+
+                    // Save changes on blur event
+                    const editableSpan = li.querySelector('.editable');
+                    editableSpan.addEventListener('blur', function() {
+                        updateTask(cursor.value.id, editableSpan.textContent);
+                    });
+
+                    cursor.continue();
+                }
+            };
+        }
+
+        function updateTask(id, newTask) {
+            const transaction = db.transaction([storeName], 'readwrite');
+            const objectStore = transaction.objectStore(storeName);
+            const request = objectStore.get(parseInt(id));
+
+            request.onsuccess = function() {
+                const task = request.result;
+                task.task = newTask;
+                objectStore.put(task);
+                showToast('Task updated successfully');
+            };
+
+            request.onerror = function(event) {
+                showToast('Error updating task: ' + event.target.errorCode);
+            };
+        }
+
+        function deleteTask(id, li) {
+            const transaction = db.transaction([storeName], 'readwrite');
+            const objectStore = transaction.objectStore(storeName);
+            const request = objectStore.delete(parseInt(id));
+
+            request.onsuccess = function() {
+                li.remove();
+                showToast('Task deleted successfully');
+            };
+
+            request.onerror = function(event) {
+                showToast('Error deleting task: ' + event.target.errorCode);
+            };
+        }
+
+        // Add task on Enter key press
+        document.getElementById('taskInput').addEventListener('keyup', function(event) {
+            if (event.key === 'Enter') {
+                addTask();
+            }
+        });
+
+        // Initialize Sortable.js
+        new Sortable(document.getElementById('taskList'), {
+            animation: 150,
+            handle: '.drag-handle', // Use the drag handle for dragging
+            touchStartThreshold: 1, // Reduce the touch start threshold for better mobile experience
+            fallbackOnBody: true, // Fallback to body scrolling on touch devices
+            swapThreshold: 0.65, // Adjust the swap threshold for better touch interaction
+            ghostClass: 'sortable-ghost' // Optional: Add a ghost class for better visual feedback
+        });
+
+        // Show toast notifications
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // Debug console
+        window.onerror = function(message, source, lineno, colno, error) {
+            const debugConsole = document.getElementById('debugConsole');
+            const errorMessage = `Error: ${message}\nSource: ${source}\nLine: ${lineno}\nColumn: ${colno}\nStack: ${error.stack}`;
+            debugConsole.textContent += errorMessage + '\n\n';
+            showToast('An error occurred. Check the debug console for details.');
+        };
+
+        // Theme functions
+        function setTheme(theme) {
+            const root = document.documentElement;
+            switch (theme) {
+                case 'light':
+                    root.style.setProperty('--background-color', '#f0f0f0');
+                    root.style.setProperty('--text-color', '#333');
+                    root.style.setProperty('--header-footer-bg', '#007BFF');
+                    root.style.setProperty('--header-footer-text', '#fff');
+                    root.style.setProperty('--button-bg', '#007BFF');
+                    root.style.setProperty('--button-hover-bg', '#0056b3');
+                    root.style.setProperty('--button-text', '#fff');
+                    root.style.setProperty('--delete-button-bg', '#dc3545');
+                    root.style.setProperty('--delete-button-hover-bg', '#c82333');
+                    root.style.setProperty('--container-bg', '#fff');
+                    root.style.setProperty('--container-shadow', '0 0 10px rgba(0, 0, 0, 0.1)');
+                    root.style.setProperty('--input-border', '#ccc');
+                    root.style.setProperty('--editable-border', '#ccc');
+                    root.style.setProperty('--toast-bg', '#333');
+                    root.style.setProperty('--toast-text', '#fff');
+                    root.style.setProperty('--debug-console-bg', '#333');
+                    root.style.setProperty('--debug-console-text', '#fff');
+                    root.style.setProperty('--list-item-bg', '#f9f9f9');
+                    root.style.setProperty('--list-item-text', '#333');
+                    root.style.setProperty('--drag-handle-color', '#555');
+                    break;
+                case 'dark':
+                    root.style.setProperty('--background-color', '#333');
+                    root.style.setProperty('--text-color', '#fff');
+                    root.style.setProperty('--header-footer-bg', '#111');
+                    root.style.setProperty('--header-footer-text', '#fff');
+                    root.style.setProperty('--button-bg', '#333');
+                    root.style.setProperty('--button-hover-bg', '#555');
+                    root.style.setProperty('--button-text', '#fff');
+                    root.style.setProperty('--delete-button-bg', '#dc3545');
+                    root.style.setProperty('--delete-button-hover-bg', '#c82333');
+                    root.style.setProperty('--container-bg', '#444');
+                    root.style.setProperty('--container-shadow', '0 0 10px rgba(0, 0, 0, 0.5)');
+                    root.style.setProperty('--input-border', '#555');
+                    root.style.setProperty('--editable-border', '#555');
+                    root.style.setProperty('--toast-bg', '#333');
+                    root.style.setProperty('--toast-text', '#fff');
+                    root.style.setProperty('--debug-console-bg', '#333');
+                    root.style.setProperty('--debug-console-text', '#fff');
+                    root.style.setProperty('--list-item-bg', '#555');
+                    root.style.setProperty('--list-item-text', '#fff');
+                    root.style.setProperty('--drag-handle-color', '#aaa'); // Lighter grey for visibility
+                    break;
+                case 'blue':
+                    root.style.setProperty('--background-color', '#e0f7fa');
+                    root.style.setProperty('--text-color', '#000');
+                    root.style.setProperty('--header-footer-bg', '#007BFF');
+                    root.style.setProperty('--header-footer-text', '#fff');
+                    root.style.setProperty('--button-bg', '#007BFF');
+                    root.style.setProperty('--button-hover-bg', '#0056b3');
+                    root.style.setProperty('--button-text', '#fff');
+                    root.style.setProperty('--delete-button-bg', '#dc3545');
+                    root.style.setProperty('--delete-button-hover-bg', '#c82333');
+                    root.style.setProperty('--container-bg', '#fff');
+                    root.style.setProperty('--container-shadow', '0 0 10px rgba(0, 0, 0, 0.1)');
+                    root.style.setProperty('--input-border', '#ccc');
+                    root.style.setProperty('--editable-border', '#ccc');
+                    root.style.setProperty('--toast-bg', '#333');
+                    root.style.setProperty('--toast-text', '#fff');
+                    root.style.setProperty('--debug-console-bg', '#333');
+                    root.style.setProperty('--debug-console-text', '#fff');
+                    root.style.setProperty('--list-item-bg', '#e0f7fa');
+                    root.style.setProperty('--list-item-text', '#000');
+                    root.style.setProperty('--drag-handle-color', '#555');
+                    break;
+                case 'green':
+                    root.style.setProperty('--background-color', '#e8f5e9');
+                    root.style.setProperty('--text-color', '#000');
+                    root.style.setProperty('--header-footer-bg', '#4CAF50');
+                    root.style.setProperty('--header-footer-text', '#fff');
+                    root.style.setProperty('--button-bg', '#4CAF50');
+                    root.style.setProperty('--button-hover-bg', '#43A047');
+                    root.style.setProperty('--button-text', '#fff');
+                    root.style.setProperty('--delete-button-bg', '#dc3545');
+                    root.style.setProperty('--delete-button-hover-bg', '#c82333');
+                    root.style.setProperty('--container-bg', '#fff');
+                    root.style.setProperty('--container-shadow', '0 0 10px rgba(0, 0, 0, 0.1)');
+                    root.style.setProperty('--input-border', '#ccc');
+                    root.style.setProperty('--editable-border', '#ccc');
+                    root.style.setProperty('--toast-bg', '#333');
+                    root.style.setProperty('--toast-text', '#fff');
+                    root.style.setProperty('--debug-console-bg', '#333');
+                    root.style.setProperty('--debug-console-text', '#fff');
+                    root.style.setProperty('--list-item-bg', '#e8f5e9');
+                    root.style.setProperty('--list-item-text', '#000');
+                    root.style.setProperty('--drag-handle-color', '#555');
+                    break;
+                case 'purple':
+                    root.style.setProperty('--background-color', '#f3e5f5');
+                    root.style.setProperty('--text-color', '#000');
+                    root.style.setProperty('--header-footer-bg', '#9C27B0');
+                    root.style.setProperty('--header-footer-text', '#fff');
+                    root.style.setProperty('--button-bg', '#9C27B0');
+                    root.style.setProperty('--button-hover-bg', '#7B1FA2');
+                    root.style.setProperty('--button-text', '#fff');
+                    root.style.setProperty('--delete-button-bg', '#dc3545');
+                    root.style.setProperty('--delete-button-hover-bg', '#c82333');
+                    root.style.setProperty('--container-bg', '#fff');
+                    root.style.setProperty('--container-shadow', '0 0 10px rgba(0, 0, 0, 0.1)');
+                    root.style.setProperty('--input-border', '#ccc');
+                    root.style.setProperty('--editable-border', '#ccc');
+                    root.style.setProperty('--toast-bg', '#333');
+                    root.style.setProperty('--toast-text', '#fff');
+                    root.style.setProperty('--debug-console-bg', '#333');
+                    root.style.setProperty('--debug-console-text', '#fff');
+                    root.style.setProperty('--list-item-bg', '#f3e5f5');
+                    root.style.setProperty('--list-item-text', '#000');
+                    root.style.setProperty('--drag-handle-color', '#555');
+                    break;
+                default:
+                    setTheme('light');
+            }
+        }
+    </script>
+</body>
+</html>
