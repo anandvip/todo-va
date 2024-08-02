@@ -180,6 +180,25 @@
             text-align: center;
             padding: 1rem;
         }
+
+        /* New styles for phone authentication */
+        #phoneAuthContainer {
+            display: none;
+            margin-top: 1rem;
+        }
+
+        #phoneNumber, #verificationCode {
+            width: 100%;
+            padding: 0.5rem;
+            margin-bottom: 0.5rem;
+            border: 1px solid var(--input-border);
+            border-radius: 4px;
+        }
+
+        #sendCodeBtn, #verifyCodeBtn {
+            width: 100%;
+            margin-bottom: 0.5rem;
+        }
     </style>
 </head>
 <body>
@@ -187,12 +206,19 @@
         <h1>To-Do List</h1>
         <div id="userInfo"></div>
         <div id="authContainer">
-            <button id="loginBtn">Login</button>
+            <button id="googleLoginBtn">Login with Google</button>
+            <button id="phoneLoginBtn">Login with Phone</button>
             <button id="logoutBtn" style="display: none;">Logout</button>
         </div>
     </header>
     <main>
         <div class="container">
+            <div id="phoneAuthContainer">
+                <input type="tel" id="phoneNumber" placeholder="Enter phone number">
+                <button id="sendCodeBtn">Send Code</button>
+                <input type="text" id="verificationCode" placeholder="Enter verification code" style="display:none;">
+                <button id="verifyCodeBtn" style="display:none;">Verify Code</button>
+            </div>
             <form id="taskForm" style="display: none;">
                 <input type="text" id="taskInput" placeholder="Add a new task" required>
                 <button type="submit" id="addTaskBtn">Add Task</button>
@@ -215,7 +241,7 @@
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
-        import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged, signInWithPhoneNumber, RecaptchaVerifier } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
         import { getFirestore, collection, addDoc, getDocs, updateDoc, deleteDoc, doc, query, where } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
         const firebaseConfig = {
@@ -237,9 +263,18 @@
                 this.taskInput = document.getElementById('taskInput');
                 this.taskList = document.getElementById('taskList');
                 this.toast = document.getElementById('toast');
-                this.loginBtn = document.getElementById('loginBtn');
+                this.googleLoginBtn = document.getElementById('googleLoginBtn');
+                this.phoneLoginBtn = document.getElementById('phoneLoginBtn');
                 this.logoutBtn = document.getElementById('logoutBtn');
                 this.userInfo = document.getElementById('userInfo');
+                this.phoneAuthContainer = document.getElementById('phoneAuthContainer');
+                this.phoneNumber = document.getElementById('phoneNumber');
+                this.sendCodeBtn = document.getElementById('sendCodeBtn');
+                this.verificationCode = document.getElementById('verificationCode');
+                this.verifyCodeBtn = document.getElementById('verifyCodeBtn');
+
+                this.recaptchaVerifier = null;
+                this.confirmationResult = null;
 
                 this.initEventListeners();
                 this.initSortable();
@@ -252,7 +287,10 @@
                     e.preventDefault();
                     this.addTask();
                 });
-                this.loginBtn.addEventListener('click', () => this.login());
+                this.googleLoginBtn.addEventListener('click', () => this.loginWithGoogle());
+                this.phoneLoginBtn.addEventListener('click', () => this.showPhoneAuth());
+                this.sendCodeBtn.addEventListener('click', () => this.sendVerificationCode());
+                this.verifyCodeBtn.addEventListener('click', () => this.verifyCode());
                 this.logoutBtn.addEventListener('click', () => this.logout());
             }
 
@@ -270,13 +308,16 @@
             initAuth() {
                 onAuthStateChanged(auth, (user) => {
                     if (user) {
-                        this.loginBtn.style.display = 'none';
+                        this.googleLoginBtn.style.display = 'none';
+                        this.phoneLoginBtn.style.display = 'none';
                         this.logoutBtn.style.display = 'inline-block';
                         this.taskForm.style.display = 'flex';
+                        this.phoneAuthContainer.style.display = 'none';
                         this.displayUserInfo(user);
                         this.loadTasks();
                     } else {
-                        this.loginBtn.style.display = 'inline-block';
+                        this.googleLoginBtn.style.display = 'inline-block';
+                        this.phoneLoginBtn.style.display = 'inline-block';
                         this.logoutBtn.style.display = 'none';
                         this.taskForm.style.display = 'none';
                         this.userInfo.style.display = 'none';
@@ -287,22 +328,55 @@
 
             displayUserInfo(user) {
                 this.userInfo.innerHTML = `
-                    <img src="${user.photoURL}" alt="${user.displayName}'s profile picture">
+                    <img src="${user.photoURL || 'https://via.placeholder.com/40'}" alt="${user.displayName || 'User'}'s profile picture">
                     <div>
-                        <p>${user.displayName}</p>
-                        <p>${user.email}</p>
+                        <p>${user.displayName || 'User'}</p>
+                        <p>${user.email || user.phoneNumber}</p>
                     </div>
                 `;
                 this.userInfo.style.display = 'flex';
             }
 
-            async login() {
+            async loginWithGoogle() {
                 const provider = new GoogleAuthProvider();
                 try {
                     await signInWithPopup(auth, provider);
                     this.showToast('Logged in successfully');
                 } catch (error) {
                     this.showToast('Error logging in: ' + error.message);
+                }
+            }
+
+            showPhoneAuth() {
+                this.phoneAuthContainer.style.display = 'block';
+                this.recaptchaVerifier = new RecaptchaVerifier(auth, 'sendCodeBtn', {
+                    'size': 'invisible',
+                    'callback': (response) => {
+                        // reCAPTCHA solved, allow signInWithPhoneNumber.
+                        this.sendVerificationCode();
+                    }
+                });
+            }
+
+            async sendVerificationCode() {
+                const phoneNumber = this.phoneNumber.value;
+                try {
+                    this.confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, this.recaptchaVerifier);
+                    this.verificationCode.style.display = 'block';
+                    this.verifyCodeBtn.style.display = 'block';
+                    this.showToast('Verification code sent');
+                } catch (error) {
+                    this.showToast('Error sending code: ' + error.message);
+                }
+            }
+
+            async verifyCode() {
+                const code = this.verificationCode.value;
+                try {
+                    await this.confirmationResult.confirm(code);
+                    this.showToast('Phone authentication successful');
+                } catch (error) {
+                    this.showToast('Error verifying code: ' + error.message);
                 }
             }
 
@@ -412,7 +486,6 @@
                         root.style.setProperty('--header-footer-bg', '#3498db');
                         root.style.setProperty('--button-bg', '#3498db');
                         root.style.setProperty('--button-hover-bg', '#2980b9');
-                        root.style.setProperty('--container-bg', '#ffffff');
                         root.style.setProperty('--container-bg', '#ffffff');
                         root.style.setProperty('--list-item-bg', '#ecf0f1');
                         break;
