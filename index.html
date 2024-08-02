@@ -3,367 +3,517 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Firebase To-Do List</title>
+    <title>To-Do List</title>
     <style>
         :root {
-            --primary-color: #4285F4;
-            --secondary-color: #34A853;
-            --danger-color: #EA4335;
-            --light-color: #FFFFFF;
-            --dark-color: #202124;
-            --gray-color: #5F6368;
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
+            --background-color: #f0f0f0;
+            --text-color: #333;
+            --header-footer-bg: #007BFF;
+            --header-footer-text: #fff;
+            --button-bg: #007BFF;
+            --button-hover-bg: #0056b3;
+            --button-text: #fff;
+            --delete-button-bg: #dc3545;
+            --delete-button-hover-bg: #c82333;
+            --container-bg: #fff;
+            --container-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            --input-border: #ccc;
+            --editable-border: #ccc;
+            --toast-bg: #333;
+            --toast-text: #fff;
+            --debug-console-bg: #333;
+            --debug-console-text: #fff;
+            --list-item-bg: #f9f9f9;
+            --list-item-text: #333;
+            --drag-handle-color: #555;
         }
 
         body {
-            font-family: 'Roboto', Arial, sans-serif;
-            line-height: 1.6;
-            color: var(--dark-color);
-            background-color: #F1F3F4;
+            font-family: Arial, sans-serif;
+            background-color: var(--background-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            color: var(--text-color);
+        }
+
+        header, footer {
+            background-color: var(--header-footer-bg);
+            color: var(--header-footer-text);
+            padding: 10px;
+            width: 100%;
+            text-align: center;
         }
 
         .container {
-            max-width: 800px;
-            margin: 0 auto;
+            background-color: var(--container-bg);
             padding: 20px;
-        }
-
-        header {
-            background-color: var(--primary-color);
-            color: var(--light-color);
-            text-align: center;
-            padding: 1rem;
-            margin-bottom: 2rem;
-        }
-
-        h1, h2 {
-            margin-bottom: 1rem;
-        }
-
-        #authSection, #todoSection {
-            background-color: var(--light-color);
             border-radius: 8px;
-            padding: 2rem;
-            margin-bottom: 2rem;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            box-shadow: var(--container-shadow);
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+            flex-grow: 1;
+            margin: 20px 0;
         }
 
-        #todoSection {
-            display: none;
+        h1 {
+            margin-bottom: 20px;
         }
 
-        input[type="email"],
-        input[type="password"],
-        input[type="text"] {
-            width: 100%;
+        input {
+            width: 80%;
             padding: 10px;
-            margin-bottom: 1rem;
-            border: 1px solid var(--gray-color);
+            margin-bottom: 10px;
+            border: 1px solid var(--input-border);
             border-radius: 4px;
-            font-size: 1rem;
         }
 
         button {
-            background-color: var(--primary-color);
-            color: var(--light-color);
-            border: none;
             padding: 10px 20px;
+            border: none;
             border-radius: 4px;
+            background-color: var(--button-bg);
+            color: var(--button-text);
             cursor: pointer;
-            font-size: 1rem;
-            transition: background-color 0.3s ease;
         }
 
         button:hover {
-            background-color: #3367D6;
+            background-color: var(--button-hover-bg);
         }
 
-        #googleSignInBtn {
-            background-color: var(--danger-color);
-        }
-
-        #googleSignInBtn:hover {
-            background-color: #C62828;
-        }
-
-        #userProfile {
-            display: flex;
-            align-items: center;
-            margin-bottom: 1rem;
-        }
-
-        #userPhoto {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            margin-right: 1rem;
-        }
-
-        #userName {
-            font-weight: bold;
-            font-size: 1.2rem;
-        }
-
-        #taskList {
+        ul {
             list-style-type: none;
+            padding: 0;
         }
 
-        .task-item {
-            background-color: #E8F0FE;
+        li {
+            background-color: var(--list-item-bg);
+            padding: 10px;
+            margin: 5px 0;
             border-radius: 4px;
-            padding: 1rem;
-            margin-bottom: 0.5rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            cursor: move; /* Change cursor to indicate draggable */
+            touch-action: none; /* Disable default touch actions */
+            position: relative;
+            color: var(--list-item-text);
         }
 
-        .delete-btn {
-            background-color: var(--danger-color);
+        li .drag-handle {
+            cursor: move;
+            margin-right: 10px;
+            font-size: 1.2em;
+            color: var(--drag-handle-color);
+        }
+
+        li button {
+            background-color: var(--delete-button-bg);
+            border: none;
+            color: #fff;
             padding: 5px 10px;
-            font-size: 0.8rem;
+            border-radius: 4px;
+            cursor: pointer;
         }
 
-        #toast {
+        li button:hover {
+            background-color: var(--delete-button-hover-bg);
+        }
+
+        .sortable-ghost {
+            opacity: 0.5;
+            background-color: #ccc;
+        }
+
+        .editable {
+            outline: none;
+            border: 1px solid var(--editable-border);
+            border-radius: 4px;
+            padding: 5px;
+            margin-right: 10px;
+            flex-grow: 1;
+        }
+
+        .toast {
             position: fixed;
             bottom: 20px;
             left: 50%;
             transform: translateX(-50%);
-            background-color: var(--secondary-color);
-            color: var(--light-color);
+            background-color: var(--toast-bg);
+            color: var(--toast-text);
             padding: 10px 20px;
             border-radius: 4px;
+            z-index: 1000;
             opacity: 0;
-            transition: opacity 0.3s ease;
+            transition: opacity 0.5s;
+        }
+
+        .toast.show {
+            opacity: 1;
+        }
+
+        .debug-console {
+            background-color: var(--debug-console-bg);
+            color: var(--debug-console-text);
+            padding: 10px;
+            width: 100%;
+            text-align: left;
+            overflow-y: auto;
+            max-height: 150px;
+        }
+
+        .theme-selector {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .theme-selector div {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            margin: 0 5px;
+            cursor: pointer;
+        }
+
+        .theme-selector div:hover {
+            transform: scale(1.2);
         }
     </style>
 </head>
 <body>
     <header>
-        <h1>Firebase To-Do List</h1>
+        <h1>To-Do List</h1>
+        <button onclick="signInWithGoogle()">Sign In with Google</button>
+        <button onclick="signOut()">Sign Out</button>
     </header>
-
     <div class="container">
-        <div id="authSection">
-            <h2>Authentication</h2>
-            <input type="email" id="emailInput" placeholder="Email">
-            <input type="password" id="passwordInput" placeholder="Password">
-            <button id="signupBtn">Sign Up</button>
-            <button id="loginBtn">Login</button>
-            <button id="googleSignInBtn">Sign In with Google</button>
-        </div>
-
-        <div id="todoSection">
-            <div id="userProfile">
-                <img id="userPhoto" src="/api/placeholder/50/50" alt="User profile">
-                <span id="userName">User Name</span>
-            </div>
-            <h2>Your Tasks</h2>
-            <input type="text" id="taskInput" placeholder="Enter a new task">
-            <button id="addTaskBtn">Add Task</button>
-            <ul id="taskList"></ul>
-            <button id="signOutBtn">Sign Out</button>
+        <input type="text" id="taskInput" placeholder="Add a new task">
+        <button onclick="addTask()">Add Task</button>
+        <ul id="taskList"></ul>
+        <div class="theme-selector">
+            <div style="background-color: #fff;" onclick="setTheme('light')"></div>
+            <div style="background-color: #333;" onclick="setTheme('dark')"></div>
+            <div style="background-color: #007BFF;" onclick="setTheme('blue')"></div>
+            <div style="background-color: #4CAF50;" onclick="setTheme('green')"></div>
+            <div style="background-color: #9C27B0;" onclick="setTheme('purple')"></div>
         </div>
     </div>
-
-    <div id="toast"></div>
-
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
-        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query, where, orderBy } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
-
+    <footer>
+        <p>&copy; 2023 To-Do List App</p>
+    </footer>
+    <div class="toast" id="toast"></div>
+    <div class="debug-console" id="debugConsole"></div>
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore.js"></script>
+    <script>
+        // Firebase configuration
         const firebaseConfig = {
-            apiKey: "AIzaSyD6AcC8ye33-y-Hk67He9-WHdIETssMPRY",
-            authDomain: "enhtodo-va.firebaseapp.com",
-            projectId: "enhtodo-va",
-            storageBucket: "enhtodo-va.appspot.com",
-            messagingSenderId: "328367594703",
-            appId: "1:328367594703:web:f51cfb5ba0c0b6cd62abba"
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_AUTH_DOMAIN",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_STORAGE_BUCKET",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
         };
 
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
 
-        class TodoApp {
-            constructor() {
-                this.currentUser = null;
-                this.tasks = [];
-                this.initElements();
-                this.initEventListeners();
-                this.initAuth();
-            }
+        // Google authentication
+        const googleProvider = new firebase.auth.GoogleAuthProvider();
 
-            initElements() {
-                this.authSection = document.getElementById('authSection');
-                this.todoSection = document.getElementById('todoSection');
-                this.emailInput = document.getElementById('emailInput');
-                this.passwordInput = document.getElementById('passwordInput');
-                this.signupBtn = document.getElementById('signupBtn');
-                this.loginBtn = document.getElementById('loginBtn');
-                this.googleSignInBtn = document.getElementById('googleSignInBtn');
-                this.signOutBtn = document.getElementById('signOutBtn');
-                this.taskInput = document.getElementById('taskInput');
-                this.addTaskBtn = document.getElementById('addTaskBtn');
-                this.taskList = document.getElementById('taskList');
-                this.userPhoto = document.getElementById('userPhoto');
-                this.userName = document.getElementById('userName');
-                this.toast = document.getElementById('toast');
-            }
-
-            initEventListeners() {
-                this.signupBtn.addEventListener('click', () => this.signup());
-                this.loginBtn.addEventListener('click', () => this.login());
-                this.googleSignInBtn.addEventListener('click', () => this.signInWithGoogle());
-                this.signOutBtn.addEventListener('click', () => this.signOut());
-                this.addTaskBtn.addEventListener('click', () => this.addTask());
-                this.taskInput.addEventListener('keyup', (event) => {
-                    if (event.key === 'Enter') this.addTask();
+        function signInWithGoogle() {
+            auth.signInWithPopup(googleProvider)
+                .then((result) => {
+                    const user = result.user;
+                    showToast('Signed in as ' + user.displayName);
+                    loadTasks();
+                })
+                .catch((error) => {
+                    showToast('Error signing in: ' + error.message);
                 });
-            }
+        }
 
-            initAuth() {
-                onAuthStateChanged(auth, (user) => {
-                    if (user) {
-                        this.currentUser = user;
-                        this.showTodoSection();
-                        this.loadTasks();
-                    } else {
-                        this.currentUser = null;
-                        this.showAuthSection();
-                    }
+        function signOut() {
+            auth.signOut()
+                .then(() => {
+                    showToast('Signed out');
+                })
+                .catch((error) => {
+                    showToast('Error signing out: ' + error.message);
                 });
+        }
+
+        // Add task
+        function addTask() {
+            const taskInput = document.getElementById('taskInput');
+            const taskList = document.getElementById('taskList');
+
+            if (taskInput.value.trim() === '') {
+                showToast('Please enter a task');
+                return;
             }
 
-            showAuthSection() {
-                this.authSection.style.display = 'block';
-                this.todoSection.style.display = 'none';
-            }
+            const task = { task: taskInput.value.trim(), userId: auth.currentUser.uid };
 
-            showTodoSection() {
-                this.authSection.style.display = 'none';
-                this.todoSection.style.display = 'block';
-                this.updateUserProfile();
-            }
-
-            updateUserProfile() {
-                this.userName.textContent = this.currentUser.displayName || this.currentUser.email;
-                this.userPhoto.src = this.currentUser.photoURL || '/api/placeholder/50/50';
-            }
-
-            async signup() {
-                try {
-                    const userCredential = await createUserWithEmailAndPassword(auth, this.emailInput.value, this.passwordInput.value);
-                    this.showToast('Signed up successfully');
-                } catch (error) {
-                    this.showToast('Error signing up: ' + error.message);
-                }
-            }
-
-            async login() {
-                try {
-                    await signInWithEmailAndPassword(auth, this.emailInput.value, this.passwordInput.value);
-                    this.showToast('Logged in successfully');
-                } catch (error) {
-                    this.showToast('Error logging in: ' + error.message);
-                }
-            }
-
-            async signInWithGoogle() {
-                const provider = new GoogleAuthProvider();
-                try {
-                    await signInWithPopup(auth, provider);
-                    this.showToast('Signed in with Google successfully');
-                } catch (error) {
-                    this.showToast('Error signing in with Google: ' + error.message);
-                }
-            }
-
-            async signOut() {
-                try {
-                    await signOut(auth);
-                    this.showToast('Signed out successfully');
-                } catch (error) {
-                    this.showToast('Error signing out: ' + error.message);
-                }
-            }
-
-            async addTask() {
-                const taskText = this.taskInput.value.trim();
-                if (taskText === '') return;
-
-                try {
-                    await addDoc(collection(db, 'tasks'), {
-                        userId: this.currentUser.uid,
-                        text: taskText,
-                        createdAt: new Date()
-                    });
-                    this.taskInput.value = '';
-                    this.showToast('Task added successfully');
-                    await this.loadTasks();
-                } catch (error) {
-                    this.showToast('Error adding task: ' + error.message);
-                }
-            }
-
-            async loadTasks() {
-                try {
-                    const q = query(
-                        collection(db, 'tasks'),
-                        where('userId', '==', this.currentUser.uid),
-                        orderBy('createdAt', 'desc')
-                    );
-                    const querySnapshot = await getDocs(q);
-                    this.tasks = querySnapshot.docs.map(doc => ({
-                        id: doc.id,
-                        ...doc.data()
-                    }));
-                    this.renderTasks();
-                } catch (error) {
-                    this.showToast('Error loading tasks: ' + error.message);
-                }
-            }
-
-            async deleteTask(taskId) {
-                try {
-                    await deleteDoc(doc(db, 'tasks', taskId));
-                    this.showToast('Task deleted successfully');
-                    await this.loadTasks();
-                } catch (error) {
-                    this.showToast('Error deleting task: ' + error.message);
-                }
-            }
-
-            renderTasks() {
-                this.taskList.innerHTML = '';
-                this.tasks.forEach(task => {
+            db.collection('tasks').add(task)
+                .then((docRef) => {
                     const li = document.createElement('li');
-                    li.className = 'task-item';
-                    li.innerHTML = `
-                        <span>${task.text}</span>
-                        <button class="delete-btn">Delete</button>
-                    `;
-                    li.querySelector('.delete-btn').addEventListener('click', () => this.deleteTask(task.id));
-                    this.taskList.appendChild(li);
-                });
-            }
+                    li.setAttribute('data-id', docRef.id); // Store the key as a data attribute
+                    li.innerHTML = `<span class="drag-handle">☰</span> <span class="editable" contenteditable="true">${task.task}</span>`;
 
-            showToast(message) {
-                this.toast.textContent = message;
-                this.toast.style.opacity = 1;
-                setTimeout(() => {
-                    this.toast.style.opacity = 0;
-                }, 3000);
+                    const deleteButton = document.createElement('button');
+                    deleteButton.textContent = 'Delete';
+                    deleteButton.onclick = function() {
+                        deleteTask(docRef.id, li);
+                    };
+
+                    li.appendChild(deleteButton);
+                    taskList.appendChild(li);
+
+                    // Save changes on blur event
+                    const editableSpan = li.querySelector('.editable');
+                    editableSpan.addEventListener('blur', function() {
+                        updateTask(docRef.id, editableSpan.textContent);
+                    });
+
+                    taskInput.value = '';
+                    showToast('Task added successfully');
+                })
+                .catch((error) => {
+                    showToast('Error adding task: ' + error.message);
+                });
+        }
+
+        // Load tasks
+        function loadTasks() {
+            const taskList = document.getElementById('taskList');
+            taskList.innerHTML = '';
+
+            db.collection('tasks').where('userId', '==', auth.currentUser.uid).get()
+                .then((querySnapshot) => {
+                    querySnapshot.forEach((doc) => {
+                        const li = document.createElement('li');
+                        li.setAttribute('data-id', doc.id); // Store the key as a data attribute
+                        li.innerHTML = `<span class="drag-handle">☰</span> <span class="editable" contenteditable="true">${doc.data().task}</span>`;
+
+                        const deleteButton = document.createElement('button');
+                        deleteButton.textContent = 'Delete';
+                        deleteButton.onclick = function() {
+                            deleteTask(doc.id, li);
+                        };
+
+                        li.appendChild(deleteButton);
+                        taskList.appendChild(li);
+
+                        // Save changes on blur event
+                        const editableSpan = li.querySelector('.editable');
+                        editableSpan.addEventListener('blur', function() {
+                            updateTask(doc.id, editableSpan.textContent);
+                        });
+                    });
+                })
+                .catch((error) => {
+                    showToast('Error loading tasks: ' + error.message);
+                });
+        }
+
+        // Update task
+        function updateTask(id, newTask) {
+            db.collection('tasks').doc(id).update({ task: newTask })
+                .then(() => {
+                    showToast('Task updated successfully');
+                })
+                .catch((error) => {
+                    showToast('Error updating task: ' + error.message);
+                });
+        }
+
+        // Delete task
+        function deleteTask(id, li) {
+            db.collection('tasks').doc(id).delete()
+                .then(() => {
+                    li.remove();
+                    showToast('Task deleted successfully');
+                })
+                .catch((error) => {
+                    showToast('Error deleting task: ' + error.message);
+                });
+        }
+
+        // Add task on Enter key press
+        document.getElementById('taskInput').addEventListener('keyup', function(event) {
+            if (event.key === 'Enter') {
+                addTask();
+            }
+        });
+
+        // Initialize Sortable.js
+        new Sortable(document.getElementById('taskList'), {
+            animation: 150,
+            handle: '.drag-handle', // Use the drag handle for dragging
+            touchStartThreshold: 1, // Reduce the touch start threshold for better mobile experience
+            fallbackOnBody: true, // Fallback to body scrolling on touch devices
+            swapThreshold: 0.65, // Adjust the swap threshold for better touch interaction
+            ghostClass: 'sortable-ghost' // Optional: Add a ghost class for better visual feedback
+        });
+
+        // Show toast notifications
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // Debug console
+        window.onerror = function(message, source, lineno, colno, error) {
+            const debugConsole = document.getElementById('debugConsole');
+            const errorMessage = `Error: ${message}\nSource: ${source}\nLine: ${lineno}\nColumn: ${colno}\nStack: ${error.stack}`;
+            debugConsole.textContent += errorMessage + '\n\n';
+            showToast('An error occurred. Check the debug console for details.');
+        };
+
+        // Theme functions
+        function setTheme(theme) {
+            const root = document.documentElement;
+            switch (theme) {
+                case 'light':
+                    root.style.setProperty('--background-color', '#f0f0f0');
+                    root.style.setProperty('--text-color', '#333');
+                    root.style.setProperty('--header-footer-bg', '#007BFF');
+                    root.style.setProperty('--header-footer-text', '#fff');
+                    root.style.setProperty('--button-bg', '#007BFF');
+                    root.style.setProperty('--button-hover-bg', '#0056b3');
+                    root.style.setProperty('--button-text', '#fff');
+                    root.style.setProperty('--delete-button-bg', '#dc3545');
+                    root.style.setProperty('--delete-button-hover-bg', '#c82333');
+                    root.style.setProperty('--container-bg', '#fff');
+                    root.style.setProperty('--container-shadow', '0 0 10px rgba(0, 0, 0, 0.1)');
+                    root.style.setProperty('--input-border', '#ccc');
+                    root.style.setProperty('--editable-border', '#ccc');
+                    root.style.setProperty('--toast-bg', '#333');
+                    root.style.setProperty('--toast-text', '#fff');
+                    root.style.setProperty('--debug-console-bg', '#333');
+                    root.style.setProperty('--debug-console-text', '#fff');
+                    root.style.setProperty('--list-item-bg', '#f9f9f9');
+                    root.style.setProperty('--list-item-text', '#333');
+                    root.style.setProperty('--drag-handle-color', '#555');
+                    break;
+                case 'dark':
+                    root.style.setProperty('--background-color', '#333');
+                    root.style.setProperty('--text-color', '#fff');
+                    root.style.setProperty('--header-footer-bg', '#111');
+                    root.style.setProperty('--header-footer-text', '#fff');
+                    root.style.setProperty('--button-bg', '#333');
+                    root.style.setProperty('--button-hover-bg', '#555');
+                    root.style.setProperty('--button-text', '#fff');
+                    root.style.setProperty('--delete-button-bg', '#dc3545');
+                    root.style.setProperty('--delete-button-hover-bg', '#c82333');
+                    root.style.setProperty('--container-bg', '#444');
+                    root.style.setProperty('--container-shadow', '0 0 10px rgba(0, 0, 0, 0.5)');
+                    root.style.setProperty('--input-border', '#555');
+                    root.style.setProperty('--editable-border', '#555');
+                    root.style.setProperty('--toast-bg', '#333');
+                    root.style.setProperty('--toast-text', '#fff');
+                    root.style.setProperty('--debug-console-bg', '#333');
+                    root.style.setProperty('--debug-console-text', '#fff');
+                    root.style.setProperty('--list-item-bg', '#555');
+                    root.style.setProperty('--list-item-text', '#fff');
+                    root.style.setProperty('--drag-handle-color', '#aaa'); // Lighter grey for visibility
+                    break;
+                case 'blue':
+                    root.style.setProperty('--background-color', '#e0f7fa');
+                    root.style.setProperty('--text-color', '#000');
+                    root.style.setProperty('--header-footer-bg', '#007BFF');
+                    root.style.setProperty('--header-footer-text', '#fff');
+                    root.style.setProperty('--button-bg', '#007BFF');
+                    root.style.setProperty('--button-hover-bg', '#0056b3');
+                    root.style.setProperty('--button-text', '#fff');
+                    root.style.setProperty('--delete-button-bg', '#dc3545');
+                    root.style.setProperty('--delete-button-hover-bg', '#c82333');
+                    root.style.setProperty('--container-bg', '#fff');
+                    root.style.setProperty('--container-shadow', '0 0 10px rgba(0, 0, 0, 0.1)');
+                    root.style.setProperty('--input-border', '#ccc');
+                    root.style.setProperty('--editable-border', '#ccc');
+                    root.style.setProperty('--toast-bg', '#333');
+                    root.style.setProperty('--toast-text', '#fff');
+                    root.style.setProperty('--debug-console-bg', '#333');
+                    root.style.setProperty('--debug-console-text', '#fff');
+                    root.style.setProperty('--list-item-bg', '#e0f7fa');
+                    root.style.setProperty('--list-item-text', '#000');
+                    root.style.setProperty('--drag-handle-color', '#555');
+                    break;
+                case 'green':
+                    root.style.setProperty('--background-color', '#e8f5e9');
+                    root.style.setProperty('--text-color', '#000');
+                    root.style.setProperty('--header-footer-bg', '#4CAF50');
+                    root.style.setProperty('--header-footer-text', '#fff');
+                    root.style.setProperty('--button-bg', '#4CAF50');
+                    root.style.setProperty('--button-hover-bg', '#43A047');
+                    root.style.setProperty('--button-text', '#fff');
+                    root.style.setProperty('--delete-button-bg', '#dc3545');
+                    root.style.setProperty('--delete-button-hover-bg', '#c82333');
+                    root.style.setProperty('--container-bg', '#fff');
+                    root.style.setProperty('--container-shadow', '0 0 10px rgba(0, 0, 0, 0.1)');
+                    root.style.setProperty('--input-border', '#ccc');
+                    root.style.setProperty('--editable-border', '#ccc');
+                    root.style.setProperty('--toast-bg', '#333');
+                    root.style.setProperty('--toast-text', '#fff');
+                    root.style.setProperty('--debug-console-bg', '#333');
+                    root.style.setProperty('--debug-console-text', '#fff');
+                    root.style.setProperty('--list-item-bg', '#e8f5e9');
+                    root.style.setProperty('--list-item-text', '#000');
+                    root.style.setProperty('--drag-handle-color', '#555');
+                    break;
+                case 'purple':
+                    root.style.setProperty('--background-color', '#f3e5f5');
+                    root.style.setProperty('--text-color', '#000');
+                    root.style.setProperty('--header-footer-bg', '#9C27B0');
+                    root.style.setProperty('--header-footer-text', '#fff');
+                    root.style.setProperty('--button-bg', '#9C27B0');
+                    root.style.setProperty('--button-hover-bg', '#7B1FA2');
+                    root.style.setProperty('--button-text', '#fff');
+                    root.style.setProperty('--delete-button-bg', '#dc3545');
+                    root.style.setProperty('--delete-button-hover-bg', '#c82333');
+                    root.style.setProperty('--container-bg', '#fff');
+                    root.style.setProperty('--container-shadow', '0 0 10px rgba(0, 0, 0, 0.1)');
+                    root.style.setProperty('--input-border', '#ccc');
+                    root.style.setProperty('--editable-border', '#ccc');
+                    root.style.setProperty('--toast-bg', '#333');
+                    root.style.setProperty('--toast-text', '#fff');
+                    root.style.setProperty('--debug-console-bg', '#333');
+                    root.style.setProperty('--debug-console-text', '#fff');
+                    root.style.setProperty('--list-item-bg', '#f3e5f5');
+                    root.style.setProperty('--list-item-text', '#000');
+                    root.style.setProperty('--drag-handle-color', '#555');
+                    break;
+                default:
+                    setTheme('light');
             }
         }
 
-        new TodoApp();
+        // Sign in with Google on page load
+        window.onload = function() {
+            auth.onAuthStateChanged((user) => {
+                if (user) {
+                    showToast('Signed in as ' + user.displayName);
+                    loadTasks();
+                } else {
+                    showToast('Please sign in');
+                }
+            });
+        };
     </script>
 </body>
 </html>
